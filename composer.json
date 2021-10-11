@@ -17,7 +17,7 @@
     "license": "GPL-2.0",
     "type": "typo3-cms-extension",
     "require": {
-        "typo3/cms-core": "^10.4"
+        "typo3/cms-core": "^10.4 || ^11.5"
     },
     "autoload": {
         "psr-4": {
