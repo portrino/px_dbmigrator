@@ -4,7 +4,7 @@ services:
         autoconfigure: true
         public: false
 
-    AppZap\Migrator\Command\MigrateAllCommand:
+    AppZap\Migrator\Command\MigrateCommand:
         tags:
             - name: 'console.command'
               command: 'migration:migrateall'

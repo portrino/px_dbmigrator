@@ -11,15 +11,8 @@ use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Registry;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
-use TYPO3\CMS\Extbase\Object\ObjectManagerInterface;
 
-/**
- * Class MigrateAllCommand
- *
- * @package AppZap\Migrator\Command
- */
-class MigrateAllCommand extends Command
+class MigrateCommand extends Command
 {
 
     /**
@@ -37,37 +30,27 @@ class MigrateAllCommand extends Command
      */
     protected $shellCommandTemplate = '%s --default-character-set=UTF8 -u"%s" -p"%s" -h "%s" -D "%s" -e "source %s" 2>&1';
 
-    /**
-     *
-     */
     protected function configure()
     {
         $this->extensionConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['migrator'];
         $this->registry = GeneralUtility::makeInstance(Registry::class);
 
-            $this->setDescription(
-                'Migrates *.sh, *.sql and *.typo3cms files from the configured migrations directory.'
-            );
+        $this->setDescription(
+            'Migrates *.sh, *.sql and *.typo3cms files from the configured migrations directory.'
+        );
     }
 
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
 
-        $pathFromConfig = null;
-        if (empty($this->extensionConfiguration['migrationFolderPath'])) {
-            $io->writeln(
-                '<fg=yellow>The "sqlFolderPath" configuration is deprecated. Please use "migrationFolderPath" instead.</>'
-            );
-            $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extensionConfiguration['sqlFolderPath'];
-        } else {
-            $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extensionConfiguration['migrationFolderPath'];
-        }
+        $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extensionConfiguration['migrationFolderPath'];
         $migrationFolderPath = realpath($pathFromConfig);
 
         if (!$migrationFolderPath) {
@@ -111,9 +94,9 @@ class MigrateAllCommand extends Command
                 continue;
             }
 
-            $io->writeln(sprintf('execute %s', $fileInfo->getBasename()));
+            $io->writeln(sprintf('processing %s', $fileInfo->getBasename()));
 
-            $migrationErrors = array();
+            $migrationErrors = [];
             $migrationOutput = '';
             switch ($fileInfo->getExtension()) {
                 case 'sql':
@@ -164,17 +147,17 @@ class MigrateAllCommand extends Command
      * @param string $output
      * @return bool
      */
-    protected function migrateSqlFile(SplFileInfo $fileInfo, &$errors, &$output)
+    protected function migrateSqlFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
         $filePath = $fileInfo->getPathname();
 
         $shellCommand = sprintf(
             $this->shellCommandTemplate,
             $this->extensionConfiguration['mysqlBinaryPath'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['username'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['password'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['host'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
-            $GLOBALS['TYPO3_CONF_VARS']['DB']['database'] ?: $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
+            $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['dbname'],
             $filePath
         );
 
@@ -196,20 +179,24 @@ class MigrateAllCommand extends Command
      * @param string $output
      * @return bool
      */
-    protected function migrateTypo3CmsFile($fileInfo, &$errors, &$output)
+    protected function migrateTypo3CmsFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
         $migrationContent = file_get_contents($fileInfo->getPathname());
         foreach (explode(PHP_EOL, $migrationContent) as $line) {
             $line = trim($line);
             if (!empty($line) && strpos($line, '#') !== 0 && strpos($line, '//') !== 0) {
-                $outputLines = array();
+                $outputLines = [];
                 $status = null;
                 $shellCommand =
-                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ?: './vendor/bin/typo3cms')
+                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ? : './vendor/bin/typo3cms')
                     . ' '
-                    . $line;
+                    . $line
+                    . ' 2>&1';
+
+                chdir(Environment::getPublicPath());
                 exec($shellCommand, $outputLines, $status);
-                $output = implode(PHP_EOL, $outputLines);
+
+                $output .= implode(PHP_EOL, $outputLines);
                 if ($status !== 0) {
                     $errors[] = $output;
                     break;
@@ -225,14 +212,16 @@ class MigrateAllCommand extends Command
      * @param string $output
      * @return bool
      */
-    protected function migrateShellFile($fileInfo, &$errors, &$output)
+    protected function migrateShellFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
-        $command = $fileInfo->getPathname();
-        $outputLines = array();
+        $command = $fileInfo->getPathname() . ' 2>&1';
+        $outputLines = [];
         $status = null;
+
         chdir(Environment::getPublicPath());
         exec($command, $outputLines, $status);
-        $output = implode(PHP_EOL, $outputLines);
+
+        $output .= implode(PHP_EOL, $outputLines);
         if ($status !== 0) {
             $errors[] = $output;
         }
@@ -243,9 +232,8 @@ class MigrateAllCommand extends Command
      * @param int $executedFiles
      * @param array $errors
      * @param SymfonyStyle $io
-     * @throws Exception
      */
-    protected function outputMessages($executedFiles, $errors, $io)
+    protected function outputMessages(int $executedFiles, array $errors, SymfonyStyle $io): void
     {
 
         if ($executedFiles === 0 && count($errors) === 0) {
