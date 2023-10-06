@@ -53,7 +53,7 @@
         "typo3/cms": {
             "app-dir": ".Build",
             "cms-package-dir": "{$vendor-dir}/typo3/cms",
-            "extension-key": "migrator",
+            "extension-key": "px_dbmigrator",
             "web-dir": ".Build/web"
         }
     },

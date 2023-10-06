@@ -69,6 +69,7 @@ class MigrateCommand extends Command
         }
 
         $io->writeln(sprintf('Migration path: %s', $migrationFolderPath));
+        $io->writeln('');
 
         $iterator = new SortableDirectoryIterator($migrationFolderPath);
 
@@ -85,7 +86,7 @@ class MigrateCommand extends Command
             }
 
             $migrationStatus = $this->registry->get(
-                'Portrino\\Migrator',
+                'PxDbmigrator',
                 'migrationStatus:' . $fileInfo->getBasename(),
                 ['tstamp' => null, 'success' => false]
             );
@@ -95,7 +96,7 @@ class MigrateCommand extends Command
                 continue;
             }
 
-            $io->writeln(sprintf('processing %s', $fileInfo->getBasename()));
+            $io->write(sprintf('Processing %s', $fileInfo->getBasename()));
 
             $migrationErrors = [];
             $migrationOutput = '';
@@ -114,12 +115,11 @@ class MigrateCommand extends Command
                     $success = true;
             }
 
-            $io->write(sprintf('done %s ', $fileInfo->getBasename()));
-            $io->writeln($success ? '<fg=green>OK</>' : '<fg=red>ERROR</>');
+            $io->writeln(' ' . $success ? '<fg=green>OK</>' : '<fg=red>ERROR</>');
 
             $io->writeln(trim($migrationOutput));
 
-            // migration stops on the 1st erroneous sql file
+            // migration stops on the 1st erroneous file
             if (!$success || count($migrationErrors) > 0) {
                 $errors[$fileInfo->getFilename()] = $migrationErrors;
                 break;
@@ -129,7 +129,7 @@ class MigrateCommand extends Command
             $highestExecutedVersion = max($highestExecutedVersion, $fileVersion);
 
             $this->registry->set(
-                'Portrino\\Migrator',
+                'PxDbmigrator',
                 'migrationStatus:' . $fileInfo->getBasename(),
                 ['tstamp' => time(), 'success' => $success]
             );
@@ -240,7 +240,7 @@ class MigrateCommand extends Command
             if ($executedFiles) {
                 $io->writeln(
                     sprintf(
-                        'Migration of %d file%s completed.',
+                        '<fg=green>Migration of %d file%s completed.</>',
                         $executedFiles,
                         ($executedFiles > 1 ? 's' : '')
                     )
