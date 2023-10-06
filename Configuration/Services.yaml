@@ -1,0 +1,15 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Portrino\PxDbmigrator\:
+      resource: '../Classes/*'
+      exclude: '../Classes/Domain/Model/*'
+
+    Portrino\PxDbmigrator\Command\MigrateCommand:
+        tags:
+            - name: 'console.command'
+              command: 'migration:migrateall'
+              schedulable: false

@@ -1,5 +1,8 @@
-# cat=basic/file/1; type=string; label=Path to the folder with SQL files:relative to the web root
-sqlFolderPath = _sql
+# cat=General; type=string; label=Path to the folder with migration files:relative to the web root
+migrationFolderPath = migrations
 
-# cat=basic/file/1; type=string; label=Path to the mysql binary
+# cat=General; type=string; label=Path to the mysql binary
 mysqlBinaryPath = /usr/bin/mysql
+
+# cat=General; type=string; label=Path to the TYPO3 console binary
+typo3cmsBinaryPath = ./vendor/bin/typo3
