@@ -115,7 +115,7 @@ class MigrateCommand extends Command
                     $success = true;
             }
 
-            $io->writeln(' ' . $success ? '<fg=green>OK</>' : '<fg=red>ERROR</>');
+            $io->writeln(' ' . ($success ? '<fg=green>OK</>' : '<fg=red>ERROR</>'));
 
             $io->writeln(trim($migrationOutput));
 
