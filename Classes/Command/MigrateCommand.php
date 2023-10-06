@@ -1,12 +1,14 @@
 <?php
-namespace AppZap\Migrator\Command;
 
-use AppZap\Migrator\DirectoryIterator\SortableDirectoryIterator;
+namespace Portrino\PxDbmigrator\Command;
+
+use Portrino\PxDbmigrator\DirectoryIterator\SortableDirectoryIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Registry;
@@ -14,11 +16,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class MigrateCommand extends Command
 {
-
     /**
      * @var array
      */
-    protected $extensionConfiguration;
+    protected $extConf;
 
     /**
      * @var Registry
@@ -28,15 +29,15 @@ class MigrateCommand extends Command
     /**
      * @var string
      */
-    protected $shellCommandTemplate = '%s --default-character-set=UTF8 -u"%s" -p"%s" -h "%s" -D "%s" -e "source %s" 2>&1';
+    protected $sqlCommandTemplate = '%s --default-character-set=UTF8 -u"%s" -p"%s" -h "%s" -D "%s" -e "source %s" 2>&1';
 
     protected function configure()
     {
-        $this->extensionConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['migrator'];
+        $this->extConf = GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('px_dbmigrator');
         $this->registry = GeneralUtility::makeInstance(Registry::class);
 
         $this->setDescription(
-            'Migrates *.sh, *.sql and *.typo3cms files from the configured migrations directory.'
+            'Executes pending *.sh, *.sql and *.typo3cms migration files from the configured migrations directory.'
         );
     }
 
@@ -50,7 +51,7 @@ class MigrateCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extensionConfiguration['migrationFolderPath'];
+        $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extConf['migrationFolderPath'];
         $migrationFolderPath = realpath($pathFromConfig);
 
         if (!$migrationFolderPath) {
@@ -75,7 +76,7 @@ class MigrateCommand extends Command
         $errors = [];
         $executedFiles = 0;
 
-        /** @var $fileInfo SplFileInfo */
+        /** @var SplFileInfo $fileInfo */
         foreach ($iterator as $fileInfo) {
             $fileVersion = (int)$fileInfo->getBasename('.' . $fileInfo->getExtension());
 
@@ -84,7 +85,7 @@ class MigrateCommand extends Command
             }
 
             $migrationStatus = $this->registry->get(
-                'AppZap\\Migrator',
+                'Portrino\\Migrator',
                 'migrationStatus:' . $fileInfo->getBasename(),
                 ['tstamp' => null, 'success' => false]
             );
@@ -124,13 +125,11 @@ class MigrateCommand extends Command
                 break;
             }
 
-            if ($success) {
-                $executedFiles++;
-                $highestExecutedVersion = max($highestExecutedVersion, $fileVersion);
-            }
+            $executedFiles++;
+            $highestExecutedVersion = max($highestExecutedVersion, $fileVersion);
 
             $this->registry->set(
-                'AppZap\\Migrator',
+                'Portrino\\Migrator',
                 'migrationStatus:' . $fileInfo->getBasename(),
                 ['tstamp' => time(), 'success' => $success]
             );
@@ -138,7 +137,7 @@ class MigrateCommand extends Command
 
         $this->outputMessages($executedFiles, $errors, $io);
 
-        return 0;
+        return empty($errors) ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**
@@ -152,8 +151,8 @@ class MigrateCommand extends Command
         $filePath = $fileInfo->getPathname();
 
         $shellCommand = sprintf(
-            $this->shellCommandTemplate,
-            $this->extensionConfiguration['mysqlBinaryPath'],
+            $this->sqlCommandTemplate,
+            $this->extConf['mysqlBinaryPath'],
             $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['user'],
             $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['password'],
             $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections']['Default']['host'],
@@ -188,7 +187,7 @@ class MigrateCommand extends Command
                 $outputLines = [];
                 $status = null;
                 $shellCommand =
-                    ($this->extensionConfiguration['typo3cmsBinaryPath'] ? : './vendor/bin/typo3cms')
+                    ($this->extConf['typo3cmsBinaryPath'] ? : './vendor/bin/typo3cms')
                     . ' '
                     . $line
                     . ' 2>&1';
@@ -214,7 +213,7 @@ class MigrateCommand extends Command
      */
     protected function migrateShellFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
-        $command = $fileInfo->getPathname() . ' 2>&1';
+        $command = '/usr/bin/env sh ' . $fileInfo->getPathname() . ' 2>&1';
         $outputLines = [];
         $status = null;
 
@@ -235,7 +234,6 @@ class MigrateCommand extends Command
      */
     protected function outputMessages(int $executedFiles, array $errors, SymfonyStyle $io): void
     {
-
         if ($executedFiles === 0 && count($errors) === 0) {
             $io->writeln('Everything up to date. No migrations needed.');
         } else {

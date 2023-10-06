@@ -1,5 +1,6 @@
 <?php
-namespace AppZap\Migrator\DirectoryIterator;
+
+namespace Portrino\PxDbmigrator\DirectoryIterator;
 
 use ArrayObject;
 use DirectoryIterator;
@@ -8,7 +9,6 @@ use Traversable;
 
 class SortableDirectoryIterator implements IteratorAggregate
 {
-
     /**
      * @var ArrayObject
      */
@@ -19,7 +19,7 @@ class SortableDirectoryIterator implements IteratorAggregate
         $this->_storage = new ArrayObject();
 
         $files = new DirectoryIterator($path);
-        /** @var $file DirectoryIterator */
+        /** @var DirectoryIterator $file */
         foreach ($files as $file) {
             if ($file->isDot()) {
                 continue;
