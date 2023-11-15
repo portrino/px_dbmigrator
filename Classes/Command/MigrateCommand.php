@@ -10,6 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Registry;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -50,6 +51,8 @@ class MigrateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
+
+        $this->updateObsoleteRegistryNamespace();
 
         $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extConf['migrationFolderPath'];
         $migrationFolderPath = realpath($pathFromConfig);
@@ -117,7 +120,9 @@ class MigrateCommand extends Command
 
             $io->writeln(' ' . ($success ? '<fg=green>OK</>' : '<fg=red>ERROR</>'));
 
-            $io->writeln(trim($migrationOutput));
+            if ($migrationOutput) {
+                $io->writeln(trim($migrationOutput));
+            }
 
             // migration stops on the 1st erroneous file
             if (!$success || count($migrationErrors) > 0) {
@@ -160,7 +165,7 @@ class MigrateCommand extends Command
             $filePath
         );
 
-        $output = shell_exec($shellCommand);
+        $output .= shell_exec($shellCommand);
 
         $outputMessages = explode("\n", $output);
         foreach ($outputMessages as $outputMessage) {
@@ -255,6 +260,26 @@ class MigrateCommand extends Command
                     $io->writeln(sprintf('%s: ', implode(PHP_EOL, $error)));
                 }
             }
+        }
+    }
+
+    protected function updateObsoleteRegistryNamespace()
+    {
+        $result = GeneralUtility::makeInstance(ConnectionPool::class)
+                                ->getConnectionForTable('sys_registry')
+                                ->count(
+                                    'uid',
+                                    'sys_registry',
+                                    ['entry_namespace' => 'Appzap\\Migrator']
+                                );
+        if ($result > 0) {
+            GeneralUtility::makeInstance(ConnectionPool::class)
+                          ->getConnectionForTable('sys_registry')
+                          ->update(
+                              'sys_registry',
+                              ['entry_namespace' => 'PxDbmigrator'],
+                              ['entry_namespace' => 'Appzap\\Migrator']
+                          );
         }
     }
 }

@@ -10,10 +10,10 @@ $EM_CONF['migrator'] = [
     'author' => 'Sebastian Michaelsen, portrino GmbH',
     'author_email' => 'sebastian@app-zap.de, dev@portrino.de',
     'author_company' => 'app zap, portrino GmbH',
-    'version' => '2.0.0',
+    'version' => '2.0.1',
     'constraints' => [
         'depends' => [
-            'typo3' => '10.4.0-10.4.99',
+            'typo3' => '10.4.0-12.4.99',
         ],
     ],
 ];
