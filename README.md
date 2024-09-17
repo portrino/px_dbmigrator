@@ -1,11 +1,10 @@
 # TYPO3 extension `px_dbmigrator`
 
 [![Latest Stable Version](https://poser.pugx.org/portrino/px_dbmigrator/v/stable)](https://packagist.org/packages/portrino/px_dbmigrator)
-[![TYPO3 10](https://img.shields.io/badge/TYPO3-10-orange.svg)](https://get.typo3.org/version/10)
-[![TYPO3 11](https://img.shields.io/badge/TYPO3-11-orange.svg)](https://get.typo3.org/version/11)
-[![TYPO3 12](https://img.shields.io/badge/TYPO3-12-orange.svg)](https://get.typo3.org/version/12)
+[![TYPO3 13](https://img.shields.io/badge/TYPO3-13-orange.svg)](https://get.typo3.org/version/13)
 [![Total Downloads](https://poser.pugx.org/portrino/px_dbmigrator/downloads)](https://packagist.org/packages/portrino/px_dbmigrator)
 [![Monthly Downloads](https://poser.pugx.org/portrino/px_dbmigrator/d/monthly)](https://packagist.org/packages/portrino/px_dbmigrator)
+[![CI](https://github.com/portrino/px_dbmigrator/actions/workflows/ci.yml/badge.svg)](https://github.com/portrino/px_dbmigrator/actions/workflows/ci.yml)
 
 > Database Migrator for TYPO3
 
@@ -113,3 +112,8 @@ No, the migrator only knows one direction. You’ll need to do it manually.
 ## 5 Authors
 
 * See the list of [contributors](https://github.com/portrino/px_dbmigrator/graphs/contributors) who participated in this project.
+
+#### Based on other great extensions:
+
+* [etobi/typo3-migrator](https://github.com/etobi/typo3-migrator) by Tobias Liebig
+* [smichaelsen/typo3-migrator](https://github.com/smichaelsen/typo3-migrator) by Sebastian Michaelsen

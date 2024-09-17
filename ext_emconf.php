@@ -8,13 +8,13 @@ $EM_CONF[$_EXTKEY] = [
     'description' => 'TYPO3 DB Migrator',
     'category' => 'be',
     'state' => 'beta',
-    'author' => 'Sebastian Michaelsen, portrino GmbH',
-    'author_email' => 'sebastian@app-zap.de, dev@portrino.de',
-    'author_company' => 'app zap, portrino GmbH',
-    'version' => '2.0.2',
+    'author' => 'portrino GmbH',
+    'author_email' => 'dev@portrino.de',
+    'author_company' => 'portrino GmbH',
+    'version' => '3.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '10.4.0-12.4.99',
+            'typo3' => '13.0.0-13.4.99',
         ],
     ],
 ];

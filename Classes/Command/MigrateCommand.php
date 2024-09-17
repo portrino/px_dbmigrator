@@ -3,7 +3,6 @@
 namespace Portrino\PxDbmigrator\Command;
 
 use Portrino\PxDbmigrator\DirectoryIterator\SortableDirectoryIterator;
-use SplFileInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,7 +17,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class MigrateCommand extends Command
 {
     /**
-     * @var array
+     * @var array<string, mixed>
      */
     protected $extConf;
 
@@ -34,7 +33,7 @@ class MigrateCommand extends Command
 
     protected function configure()
     {
-        $this->extConf = GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('px_dbmigrator');
+        $this->extConf = (GeneralUtility::makeInstance(ExtensionConfiguration::class))->get('px_dbmigrator');
         $this->registry = GeneralUtility::makeInstance(Registry::class);
 
         $this->setDescription(
@@ -48,7 +47,7 @@ class MigrateCommand extends Command
      * @return int
      * @throws Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
@@ -57,10 +56,10 @@ class MigrateCommand extends Command
         $pathFromConfig = Environment::getPublicPath() . DIRECTORY_SEPARATOR . $this->extConf['migrationFolderPath'];
         $migrationFolderPath = realpath($pathFromConfig);
 
-        if (!$migrationFolderPath) {
+        if ($migrationFolderPath === false) {
             GeneralUtility::mkdir_deep($pathFromConfig);
             $migrationFolderPath = realpath($pathFromConfig);
-            if (!$migrationFolderPath) {
+            if ($migrationFolderPath === false) {
                 $io->writeln(
                     sprintf(
                         '<fg=red>Migration folder not found. Please make sure "%s" exists!</>',
@@ -80,7 +79,7 @@ class MigrateCommand extends Command
         $errors = [];
         $executedFiles = 0;
 
-        /** @var SplFileInfo $fileInfo */
+        /** @var \SplFileInfo $fileInfo */
         foreach ($iterator as $fileInfo) {
             $fileVersion = (int)$fileInfo->getBasename('.' . $fileInfo->getExtension());
 
@@ -94,7 +93,7 @@ class MigrateCommand extends Command
                 ['tstamp' => null, 'success' => false]
             );
 
-            if ($migrationStatus['success']) {
+            if ($migrationStatus['success'] === true) {
                 // already successfully executed
                 continue;
             }
@@ -142,16 +141,16 @@ class MigrateCommand extends Command
 
         $this->outputMessages($executedFiles, $errors, $io);
 
-        return empty($errors) ? Command::SUCCESS : Command::FAILURE;
+        return count($errors) === 0 ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**
-     * @param SplFileInfo $fileInfo
-     * @param array $errors
+     * @param \SplFileInfo $fileInfo
+     * @param string[] $errors
      * @param string $output
      * @return bool
      */
-    protected function migrateSqlFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
+    protected function migrateSqlFile(\SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
         $filePath = $fileInfo->getPathname();
 
@@ -165,11 +164,16 @@ class MigrateCommand extends Command
             $filePath
         );
 
+        if ($this->isExecutableWithinPath($this->extConf['mysqlBinaryPath']) === false) {
+            $errors[] = 'MySQL binary not found or not executable. Please check your configuration.';
+            return false;
+        }
+
         $output .= shell_exec($shellCommand);
 
-        $outputMessages = explode("\n", $output);
+        $outputMessages = explode(PHP_EOL, $output);
         foreach ($outputMessages as $outputMessage) {
-            if (trim($outputMessage) && strpos($outputMessage, 'ERROR') !== false) {
+            if (trim($outputMessage) !== '' && str_contains($outputMessage, 'ERROR')) {
                 $errors[] = $outputMessage;
             }
         }
@@ -178,21 +182,25 @@ class MigrateCommand extends Command
     }
 
     /**
-     * @param SplFileInfo $fileInfo
-     * @param array $errors
+     * @param \SplFileInfo $fileInfo
+     * @param string[] $errors
      * @param string $output
      * @return bool
      */
-    protected function migrateTypo3CmsFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
+    protected function migrateTypo3CmsFile(\SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
         $migrationContent = file_get_contents($fileInfo->getPathname());
+        if ($migrationContent === false) {
+            $errors[] = 'Could not read file ' . $fileInfo->getFilename();
+            return false;
+        }
         foreach (explode(PHP_EOL, $migrationContent) as $line) {
             $line = trim($line);
-            if (!empty($line) && strpos($line, '#') !== 0 && strpos($line, '//') !== 0) {
+            if ($line !== '' && !str_starts_with($line, '#')   && !str_starts_with($line, '//')) {
                 $outputLines = [];
                 $status = null;
                 $shellCommand =
-                    ($this->extConf['typo3cmsBinaryPath'] ? : './vendor/bin/typo3cms')
+                    ($this->extConf['typo3cmsBinaryPath'] !== '' ? $this->extConf['typo3cmsBinaryPath'] : './vendor/bin/typo3cms')
                     . ' '
                     . $line
                     . ' 2>&1';
@@ -211,12 +219,12 @@ class MigrateCommand extends Command
     }
 
     /**
-     * @param SplFileInfo $fileInfo
-     * @param array $errors
+     * @param \SplFileInfo $fileInfo
+     * @param string[] $errors
      * @param string $output
      * @return bool
      */
-    protected function migrateShellFile(SplFileInfo $fileInfo, array &$errors, string &$output): bool
+    protected function migrateShellFile(\SplFileInfo $fileInfo, array &$errors, string &$output): bool
     {
         $command = '/usr/bin/env sh ' . $fileInfo->getPathname() . ' 2>&1';
         $outputLines = [];
@@ -234,7 +242,7 @@ class MigrateCommand extends Command
 
     /**
      * @param int $executedFiles
-     * @param array $errors
+     * @param array<string, string[]> $errors
      * @param SymfonyStyle $io
      */
     protected function outputMessages(int $executedFiles, array $errors, SymfonyStyle $io): void
@@ -242,7 +250,7 @@ class MigrateCommand extends Command
         if ($executedFiles === 0 && count($errors) === 0) {
             $io->writeln('Everything up to date. No migrations needed.');
         } else {
-            if ($executedFiles) {
+            if ($executedFiles > 0) {
                 $io->writeln(
                     sprintf(
                         '<fg=green>Migration of %d file%s completed.</>',
@@ -253,7 +261,7 @@ class MigrateCommand extends Command
             } else {
                 $io->writeln('<fg=red>Migration failed</>');
             }
-            if (count($errors)) {
+            if (count($errors) > 0) {
                 $io->writeln(sprintf('<fg=red>The following error%s occured:</>', (count($errors) > 1 ? 's' : '')));
                 foreach ($errors as $filename => $error) {
                     $io->writeln(sprintf('File %s: ', $filename));
@@ -263,9 +271,9 @@ class MigrateCommand extends Command
         }
     }
 
-    protected function updateObsoleteRegistryNamespace()
+    protected function updateObsoleteRegistryNamespace(): void
     {
-        $result = GeneralUtility::makeInstance(ConnectionPool::class)
+        $result = (GeneralUtility::makeInstance(ConnectionPool::class))
                                 ->getConnectionForTable('sys_registry')
                                 ->count(
                                     'uid',
@@ -273,7 +281,7 @@ class MigrateCommand extends Command
                                     ['entry_namespace' => 'Appzap\\Migrator']
                                 );
         if ($result > 0) {
-            GeneralUtility::makeInstance(ConnectionPool::class)
+            (GeneralUtility::makeInstance(ConnectionPool::class))
                           ->getConnectionForTable('sys_registry')
                           ->update(
                               'sys_registry',
@@ -281,5 +289,27 @@ class MigrateCommand extends Command
                               ['entry_namespace' => 'Appzap\\Migrator']
                           );
         }
+    }
+
+    protected function isExecutableWithinPath(string $filename): bool
+    {
+        if (is_executable($filename)) {
+            return true;
+        }
+
+        if ($filename !== basename($filename)) {
+            return false;
+        }
+
+        $env = getenv('PATH');
+        if ($env !== false) {
+            $paths = explode(PATH_SEPARATOR, $env);
+            foreach ($paths as $path) {
+                if (is_executable($path . DIRECTORY_SEPARATOR . $filename)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
