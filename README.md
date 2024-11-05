@@ -109,7 +109,16 @@ Example: `1696560849-adds-some-required-pages.sql`
 
 No, the migrator only knows one direction. You’ll need to do it manually.
 
-## 5 Authors
+## 5 Compatibility
+
+| PxDbmigrator | TYPO3 | PHP       | Support / Development                |
+|--------------|-------|-----------|--------------------------------------|
+| 3.x          | 13.4  | 8.2 - 8.3 | features, bugfixes, security updates | 
+| 2.x          | 12.4  | 8.1 - 8.2 | bugfixes, security updates           | 
+| 2.x          | 11.5  | 7.4 - 8.1 | bugfixes, security updates           |
+| 2.x          | 10.4  | 7.2 - 7.4 | bugfixes, security updates           |
+
+## 6 Authors
 
 * See the list of [contributors](https://github.com/portrino/px_dbmigrator/graphs/contributors) who participated in this project.
 

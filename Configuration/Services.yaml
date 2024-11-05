@@ -12,4 +12,5 @@ services:
         tags:
             - name: 'console.command'
               command: 'migration:migrateall'
+              description: 'Executes pending *.sh, *.sql and *.typo3cms migration files from the configured migrations directory.'
               schedulable: false

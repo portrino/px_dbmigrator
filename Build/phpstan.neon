@@ -1,14 +1,65 @@
 includes:
-	- %currentWorkingDirectory%/.Build/vendor/phpstan/phpstan-strict-rules/rules.neon
-	- %currentWorkingDirectory%/.Build/vendor/phpstan/phpstan-deprecation-rules/rules.neon
-	- %currentWorkingDirectory%/.Build/vendor/friendsoftypo3/phpstan-typo3/extension.neon
+	- ../.Build/vendor/phpstan/phpstan-strict-rules/rules.neon
+	- ../.Build/vendor/phpstan/phpstan-deprecation-rules/rules.neon
+	- ../.Build/vendor/friendsoftypo3/phpstan-typo3/extension.neon
+	- ../.Build/vendor/spaze/phpstan-disallowed-calls/extension.neon
+	- ../.Build/vendor/spaze/phpstan-disallowed-calls/disallowed-dangerous-calls.neon
+	- ../.Build/vendor/spaze/phpstan-disallowed-calls/disallowed-execution-calls.neon
+	- ../.Build/vendor/spaze/phpstan-disallowed-calls/disallowed-insecure-calls.neon
+	- ../.Build/vendor/spaze/phpstan-disallowed-calls/disallowed-loose-calls.neon
+	#- ../.Build/vendor/tomasvotruba/cognitive-complexity/config/extension.neon
+	- ../.Build/vendor/tomasvotruba/type-coverage/config/extension.neon
 
 parameters:
   level: 8
 
   paths:
-    - %currentWorkingDirectory%/Classes
+    - ../Classes
 
-  ignoreErrors:
+  # Allow instanceof checks, particularly in tests
+  checkAlwaysTrueCheckTypeFunctionCall: false
+
+  type_coverage:
+    return: 100
+    param: 100
+    property: 95
+    constant: 0 # TODO: Set to 100, when PHP 8.3 is minimum requirement
+
+  #cognitive_complexity:
+  #  class: 10
+  #  function: 5
+
+  disallowedFunctionCalls:
     -
-      identifier: missingType.generics
+      function:
+        - 'var_dump()'
+        - 'xdebug_break()'
+        - 'debug()'
+      message: 'Use logging instead or remove if it was for debugging purposes.'
+    -
+      function: 'header()'
+      message: 'Use PSR-7 API instead'
+    -
+      function:
+        - 'exec()'
+        - 'shell_exec()'
+      allowInMethods:
+        - 'Portrino\PxDbmigrator\Command\MigrateCommand::migrateShellFile()'
+        - 'Portrino\PxDbmigrator\Command\MigrateCommand::migrateSqlFile()'
+        - 'Portrino\PxDbmigrator\Command\MigrateCommand::migrateTypo3CmsFile()'
+
+  disallowedStaticCalls:
+    -
+      method:
+        - 'TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump()'
+        - 'TYPO3\CMS\Core\Utility\DebugUtility::debug()'
+      message: 'Use logging instead or remove if it was for debugging purposes.'
+
+  disallowedSuperglobals:
+    -
+      superglobal:
+        - '$_GET'
+        - '$_POST'
+        - '$_FILES'
+        - '$_SERVER'
+      message: 'Use PSR-7 API instead'

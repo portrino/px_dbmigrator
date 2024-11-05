@@ -11,19 +11,21 @@
         }
     ],
     "require": {
-        "typo3/cms-core": "^13.0"
+        "typo3/cms-core": "^13.4"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.28",
         "friendsofphp/php-cs-fixer": "^3.14",
         "friendsoftypo3/phpstan-typo3": "^0.9",
         "helmich/typo3-typoscript-lint": "^3.1",
-        "php-coveralls/php-coveralls": "^2.5",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-deprecation-rules": "^1.1",
         "phpstan/phpstan-strict-rules": "^1.5",
         "seld/jsonlint": "^1.9",
-        "typo3/coding-standards": "dev-main"
+        "spaze/phpstan-disallowed-calls": "^3.4",
+        "tomasvotruba/cognitive-complexity": "^0.2.3",
+        "tomasvotruba/type-coverage": "^0.3.1",
+        "typo3/coding-standards": "^0.8"
     },
     "suggest": {
         "portrino/px_dbsequencer": ""

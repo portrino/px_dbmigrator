@@ -19,23 +19,25 @@ class MigrateCommand extends Command
     /**
      * @var array<string, mixed>
      */
-    protected $extConf;
-
-    /**
-     * @var Registry
-     */
-    protected $registry;
+    protected array $extConf = [];
 
     /**
      * @var string
      */
-    protected $sqlCommandTemplate = '%s --default-character-set=UTF8 -u"%s" -p"%s" -h "%s" -D "%s" -e "source %s" 2>&1';
+    protected string $sqlCommandTemplate = '%s --default-character-set=UTF8 -u"%s" -p"%s" -h "%s" -D "%s" -e "source %s" 2>&1';
 
-    protected function configure()
+    public function __construct(
+        protected readonly ExtensionConfiguration $extensionConfiguration,
+        protected readonly Registry $registry,
+        ?string $name = null
+    ) {
+        parent::__construct($name);
+
+        $this->extConf = $this->extensionConfiguration->get('px_dbmigrator');
+    }
+
+    protected function configure(): void
     {
-        $this->extConf = (GeneralUtility::makeInstance(ExtensionConfiguration::class))->get('px_dbmigrator');
-        $this->registry = GeneralUtility::makeInstance(Registry::class);
-
         $this->setDescription(
             'Executes pending *.sh, *.sql and *.typo3cms migration files from the configured migrations directory.'
         );
@@ -63,7 +65,7 @@ class MigrateCommand extends Command
                 $io->writeln(
                     sprintf(
                         '<fg=red>Migration folder not found. Please make sure "%s" exists!</>',
-                        htmlspecialchars($pathFromConfig)
+                        htmlspecialchars($pathFromConfig, ENT_QUOTES)
                     )
                 );
             }

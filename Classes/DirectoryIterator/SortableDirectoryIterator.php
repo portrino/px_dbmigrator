@@ -2,16 +2,19 @@
 
 namespace Portrino\PxDbmigrator\DirectoryIterator;
 
+/**
+ * @implements \IteratorAggregate<string, \SplFileInfo>
+ */
 class SortableDirectoryIterator implements \IteratorAggregate
 {
     /**
-     * @var \ArrayObject
+     * @var \ArrayObject<string, \SplFileInfo>
      */
-    private $_storage;
+    private \ArrayObject $storage;
 
     public function __construct(string $path)
     {
-        $this->_storage = new \ArrayObject();
+        $this->storage = new \ArrayObject();
 
         $files = new \DirectoryIterator($path);
         /** @var \DirectoryIterator $file */
@@ -19,10 +22,10 @@ class SortableDirectoryIterator implements \IteratorAggregate
             if ($file->isDot()) {
                 continue;
             }
-            $this->_storage->offsetSet($file->getFilename(), $file->getFileInfo());
+            $this->storage->offsetSet($file->getFilename(), $file->getFileInfo());
         }
-        $this->_storage->uksort(
-            function ($a, $b) {
+        $this->storage->uksort(
+            function (string $a, string $b) {
                 return strcmp($a, $b);
             }
         );
@@ -30,6 +33,6 @@ class SortableDirectoryIterator implements \IteratorAggregate
 
     public function getIterator(): \Traversable
     {
-        return $this->_storage->getIterator();
+        return $this->storage->getIterator();
     }
 }
