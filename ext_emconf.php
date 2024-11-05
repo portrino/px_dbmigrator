@@ -1,6 +1,6 @@
 <?php
 /***************************************************************
- * Extension Manager/Repository config file for ext: "px_dbsequencer"
+ * Extension Manager/Repository config file for ext: "px_dbmigrator"
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = [
@@ -14,7 +14,7 @@ $EM_CONF[$_EXTKEY] = [
     'version' => '3.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '13.0.0-13.4.99',
+            'typo3' => '13.4.0-13.4.99',
         ],
     ],
 ];
