@@ -11,20 +11,21 @@
         }
     ],
     "require": {
-        "typo3/cms-core": "^13.4"
+        "php": ">=8.2 <=8.5.99",
+        "typo3/cms-core": "^13.4 || ^14.0"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.28",
         "friendsofphp/php-cs-fixer": "^3.14",
-        "friendsoftypo3/phpstan-typo3": "^0.9",
         "helmich/typo3-typoscript-lint": "^3.1",
-        "phpstan/phpstan": "^1.10",
-        "phpstan/phpstan-deprecation-rules": "^1.1",
-        "phpstan/phpstan-strict-rules": "^1.5",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
         "seld/jsonlint": "^1.9",
-        "spaze/phpstan-disallowed-calls": "^3.4",
-        "tomasvotruba/cognitive-complexity": "^0.2.3",
-        "tomasvotruba/type-coverage": "^0.3.1",
+        "spaze/phpstan-disallowed-calls": "^4.0",
+        "ssch/typo3-rector": "^3.0",
+        "tomasvotruba/cognitive-complexity": "^1.0",
+        "tomasvotruba/type-coverage": "^2.0",
         "typo3/coding-standards": "^0.8"
     },
     "suggest": {
@@ -67,18 +68,17 @@
         "ci:php": [
             "@ci:php:cs-fixer",
             "@ci:php:lint",
-            "@ci:php:sniff",
+            "@ci:php:rector",
             "@ci:php:stan"
         ],
         "ci:php:cs-fixer": "./.Build/bin/php-cs-fixer fix --config ./Build/php-cs-fixer.php -v --dry-run --using-cache no --diff",
         "ci:php:lint": "find *.php Classes Configuration Tests -name '*.php' -print0 | xargs -r -0 -n 1 -P 4 php -l",
+        "ci:php:rector": "./.Build/bin/rector process --ansi --config ./Build/rector.php --dry-run --no-progress-bar",
         "ci:php:stan": "./.Build/bin/phpstan analyse -c ./Build/phpstan.neon --no-progress",
         "ci:static": [
             "@ci:composer:normalize",
             "@ci:json:lint",
-            "@ci:php:cs-fixer",
-            "@ci:php:lint",
-            "@ci:php:stan",
+            "@ci:php",
             "@ci:ts:lint",
             "@ci:yaml:lint"
         ],
@@ -87,7 +87,8 @@
         "fix:php": [
             "@fix:php:cs"
         ],
-        "fix:php:cs": "./.Build/bin/php-cs-fixer fix --config ./Build/php-cs-fixer.php"
+        "fix:php:cs": "./.Build/bin/php-cs-fixer fix --config ./Build/php-cs-fixer.php",
+        "fix:php:rector": "./.Build/bin/rector process --ansi --config ./Build/rector.php --no-progress-bar"
     },
     "scripts-descriptions": {
         "ci": "Runs all dynamic and static code checks.",

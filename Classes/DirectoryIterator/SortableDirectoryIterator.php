@@ -10,7 +10,7 @@ class SortableDirectoryIterator implements \IteratorAggregate
     /**
      * @var \ArrayObject<string, \SplFileInfo>
      */
-    private \ArrayObject $storage;
+    private readonly \ArrayObject $storage;
 
     public function __construct(string $path)
     {
@@ -24,11 +24,7 @@ class SortableDirectoryIterator implements \IteratorAggregate
             }
             $this->storage->offsetSet($file->getFilename(), $file->getFileInfo());
         }
-        $this->storage->uksort(
-            function (string $a, string $b) {
-                return strcmp($a, $b);
-            }
-        );
+        $this->storage->uksort(static fn(string $a, string $b) => strcmp($a, $b));
     }
 
     public function getIterator(): \Traversable
