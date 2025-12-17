@@ -1,7 +1,6 @@
 includes:
 	- ../.Build/vendor/phpstan/phpstan-strict-rules/rules.neon
 	- ../.Build/vendor/phpstan/phpstan-deprecation-rules/rules.neon
-	- ../.Build/vendor/friendsoftypo3/phpstan-typo3/extension.neon
 	- ../.Build/vendor/spaze/phpstan-disallowed-calls/extension.neon
 	- ../.Build/vendor/spaze/phpstan-disallowed-calls/disallowed-dangerous-calls.neon
 	- ../.Build/vendor/spaze/phpstan-disallowed-calls/disallowed-execution-calls.neon
@@ -15,9 +14,6 @@ parameters:
 
   paths:
     - ../Classes
-
-  # Allow instanceof checks, particularly in tests
-  checkAlwaysTrueCheckTypeFunctionCall: false
 
   type_coverage:
     return: 100

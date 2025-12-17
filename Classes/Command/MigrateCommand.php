@@ -104,24 +104,17 @@ class MigrateCommand extends Command
 
             $migrationErrors = [];
             $migrationOutput = '';
-            switch ($fileInfo->getExtension()) {
-                case 'sql':
-                    $success = $this->migrateSqlFile($fileInfo, $migrationErrors, $migrationOutput);
-                    break;
-                case 'typo3cms':
-                    $success = $this->migrateTypo3CmsFile($fileInfo, $migrationErrors, $migrationOutput);
-                    break;
-                case 'sh':
-                    $success = $this->migrateShellFile($fileInfo, $migrationErrors, $migrationOutput);
-                    break;
-                default:
-                    // ignore other files
-                    $success = true;
-            }
+            $success = match ($fileInfo->getExtension()) {
+                'sql' => $this->migrateSqlFile($fileInfo, $migrationErrors, $migrationOutput),
+                'typo3cms' => $this->migrateTypo3CmsFile($fileInfo, $migrationErrors, $migrationOutput),
+                'sh' => $this->migrateShellFile($fileInfo, $migrationErrors, $migrationOutput),
+                // ignore other files
+                default => true,
+            };
 
             $io->writeln(' ' . ($success ? '<fg=green>OK</>' : '<fg=red>ERROR</>'));
 
-            if ($migrationOutput) {
+            if ($migrationOutput !== '') {
                 $io->writeln(trim($migrationOutput));
             }
 

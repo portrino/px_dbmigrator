@@ -1,7 +1,8 @@
 # TYPO3 extension `px_dbmigrator`
 
 [![Latest Stable Version](https://poser.pugx.org/portrino/px_dbmigrator/v/stable)](https://packagist.org/packages/portrino/px_dbmigrator)
-[![TYPO3 13](https://img.shields.io/badge/TYPO3-13-orange.svg)](https://get.typo3.org/version/13)
+[![TYPO3 13](https://img.shields.io/badge/TYPO3-13-orange.svg?logo=typo3)](https://get.typo3.org/version/13)
+[![TYPO3 14](https://img.shields.io/badge/TYPO3-14-orange.svg?logo=typo3)](https://get.typo3.org/version/14)
 [![Total Downloads](https://poser.pugx.org/portrino/px_dbmigrator/downloads)](https://packagist.org/packages/portrino/px_dbmigrator)
 [![Monthly Downloads](https://poser.pugx.org/portrino/px_dbmigrator/d/monthly)](https://packagist.org/packages/portrino/px_dbmigrator)
 [![CI](https://github.com/portrino/px_dbmigrator/actions/workflows/ci.yml/badge.svg)](https://github.com/portrino/px_dbmigrator/actions/workflows/ci.yml)
@@ -111,12 +112,12 @@ No, the migrator only knows one direction. You’ll need to do it manually.
 
 ## 5 Compatibility
 
-| PxDbmigrator | TYPO3 | PHP       | Support / Development                |
-|--------------|-------|-----------|--------------------------------------|
-| 3.x          | 13.4  | 8.2 - 8.3 | features, bugfixes, security updates | 
-| 2.x          | 12.4  | 8.1 - 8.2 | bugfixes, security updates           | 
-| 2.x          | 11.5  | 7.4 - 8.1 | bugfixes, security updates           |
-| 2.x          | 10.4  | 7.2 - 7.4 | bugfixes, security updates           |
+| PxDbmigrator | TYPO3       | PHP       | Support / Development                |
+|--------------|-------------|-----------|--------------------------------------|
+| 3.x          | 13.4 - 14.x | 8.2 - 8.5 | features, bugfixes, security updates | 
+| 2.x          | 12.4        | 8.1 - 8.2 | bugfixes, security updates           | 
+| 2.x          | 11.5        | 7.4 - 8.1 | bugfixes, security updates           |
+| 2.x          | 10.4        | 7.2 - 7.4 | bugfixes, security updates           |
 
 ## 6 Authors
 
